@@ -128,9 +128,17 @@ def scroll_to_bottom(driver, wait_time=2.5):
     time.sleep(wait_time)
 
 def main():
+    # Determine the directory where the script/exe is located
+    if getattr(sys, 'frozen', False):
+        application_path = os.path.dirname(sys.executable)
+    else:
+        application_path = os.path.dirname(os.path.abspath(__file__))
+        
+    default_cookies_path = os.path.join(application_path, "cookies.txt")
+
     parser = argparse.ArgumentParser(description="Scrape X (Twitter) video URLs.")
     parser.add_argument("username", nargs="?", help="The X username (without @)")
-    parser.add_argument("-c", "--cookies", default="cookies.txt", help="Path to cookies.txt")
+    parser.add_argument("-c", "--cookies", default=default_cookies_path, help="Path to cookies.txt")
     parser.add_argument("-o", "--output", default="urls.txt", help="Output file")
     args = parser.parse_args()
     
@@ -145,11 +153,20 @@ def main():
             print("No username provided. Exiting.")
             return
 
+    # Check provided path or fallback to CWD if specific arg wasn't absolute?
+    # Actually argparse default is absolute now.
+    
     if not os.path.exists(args.cookies):
-        print(f"[ERROR] Cookie file '{args.cookies}' not found.")
-        print("Please run 'get_cookies.exe' first to generate it.")
-        input("Press Enter to exit...")
-        return
+        # Fallback check: look in CWD just in case user expected it there
+        cwd_cookie = "cookies.txt"
+        if os.path.exists(cwd_cookie):
+             args.cookies = cwd_cookie
+        else:
+            print(f"[ERROR] Cookie file not found at: {args.cookies}")
+            print(f"       (Also checked current directory: {os.getcwd()})")
+            print("Please run 'get_cookies.exe' to generate it in the application folder.")
+            input("Press Enter to exit...")
+            return
 
     driver = setup_driver()
 
