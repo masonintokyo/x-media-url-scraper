@@ -1,0 +1,5 @@
+selenium
+webdriver-manager
+pyinstaller
+pywin32
+pycryptodomex
